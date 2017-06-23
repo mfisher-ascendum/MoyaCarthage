@@ -8,7 +8,7 @@ class ViewController: UIViewController {
 
         let provider = MoyaProvider<Api>(plugins: [NetworkLoggerPlugin()])
 
-        provider.request(.get) { result in
+        provider.request(.post(number: 1, text: "test")) { result in
             switch result {
             case let .success(response):
                 let data = response.data
@@ -26,20 +26,38 @@ class ViewController: UIViewController {
 
 enum Api {
     case get
+    case post(number: Int, text: String)
 }
 
 extension Api: TargetType {
     var baseURL: URL { return URL(string: "https://httpbin.org")! }
     var path: String {
-        return "/get"
+        switch self {
+        case .get:
+            return "/get"
+        case .post:
+            return "/post"
+        }
     }
 
     var method: Moya.Method {
-        return .get
+        switch self {
+        case .get:
+            return .get
+        case .post:
+            return .post
+        }
     }
 
-    var parameters: [String: Any]? { return nil }
-    var parameterEncoding: ParameterEncoding { return URLEncoding.default }
+    var parameters: [String: Any]? {
+        switch self {
+        case .get:
+            return nil
+        case .post(let number, let text):
+            return ["first": number, "second": text]
+        }
+    }
+    var parameterEncoding: ParameterEncoding { return URLEncoding.queryString }
     var sampleData: Data { return Data() }
     var task: Task { return .request }
 }
